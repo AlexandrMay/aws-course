@@ -4,7 +4,7 @@
 # View created stack status - aws cloudformation describe-stacks --stack-name testname
 # Delete stack - aws cloudformation delete-stack --stack-name testname
 
-Description: Test template for weer 0
+Description: Test template for week 1
 
 Parameters:
   KeyName:
@@ -21,17 +21,44 @@ Parameters:
     Description: AMI ID for EC2
     Type: String
     Default: ami-026b57f3c383c2eec
+  
+  WebServerLaunchTemplateName:
+    Description: Name for Launch Template
+    Type: String
+    Default: MyLaunchTemplate
 
 Resources:
-  EC2Instance:
-    Type: AWS::EC2::Instance
+  WebServerLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      KeyName: !Ref KeyName
-      ImageId: !Ref EC2InstanceAmiId
-      InstanceType: !Ref EC2InstanceType
-      SecurityGroups:
-        - !Ref SSHGroup
-        - !Ref HTTPGroup
+      LaunchTemplateName: !Ref WebServerLaunchTemplateName
+      LaunchTemplateData:
+        SecurityGroupIds:
+          - !GetAtt SSHGroup.GroupId
+          - !GetAtt HTTPGroup.GroupId
+        ImageId: !Ref EC2InstanceAmiId
+        InstanceType: !Ref EC2InstanceType
+        KeyName: !Ref KeyName
+        UserData:
+          Fn::Base64:
+            !Sub |
+              #!/bin/bash
+              sudo yum update -y
+              sudo yum install yum install -y java-1.8.0
+
+  WebServerAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: MyAutoScalingGroup
+      VPCZoneIdentifier:
+        - subnet-0dc19cb80a2c11163
+        - subnet-0aba90c57dec07c05
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebServerLaunchTemplate
+        Version: !GetAtt WebServerLaunchTemplate.LatestVersionNumber
+      MinSize: 2
+      MaxSize: 3
+      DesiredCapacity: 2
 
   SSHGroup:
     Description: ssh access group
@@ -54,8 +81,3 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-
-Outputs:
-  PublicIp:
-    Description: EC2 Instance Public IP
-    Value: !GetAtt EC2Instance.PublicIp
