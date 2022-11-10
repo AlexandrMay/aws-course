@@ -1,3 +1,5 @@
 default-ssh-key.pem
 test.txt
 *terraform*
+databases/*terraform*
+databases/default-ssh-key.pem

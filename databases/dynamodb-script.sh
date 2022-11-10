@@ -1,0 +1,2 @@
+aws dynamodb put-item --table-name dynamo-test --item '{"Data": {"S": "Hello from Dynamo!!!"}, "id": {"S": "1"}}' --region us-east-1
+aws dynamodb get-item --table-name dynamo-test --key '{"id": {"S": "1"}}' --region us-east-1
