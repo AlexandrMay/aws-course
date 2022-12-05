@@ -3,3 +3,5 @@ test.txt
 *terraform*
 databases/*terraform*
 databases/default-ssh-key.pem
+*.jar
+my_key.pem
